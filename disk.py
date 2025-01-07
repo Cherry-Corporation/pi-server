@@ -4,10 +4,10 @@ import os
 
 app = FastAPI()
 
-# Path to the file you want to serve
-FILE_PATH = "/home/pi/pi-server/vms/vm-1/alpine.qcow2"  # Change this to the correct path of the file on your Pi
 
-# Endpoint to serve the file
+FILE_PATH = "/home/pi/pi-server/vms/vm-1/alpine.qcow2" 
+
+# Endpoint to serve
 @app.get("/download")
 async def download_file():
     if not os.path.exists(FILE_PATH):
