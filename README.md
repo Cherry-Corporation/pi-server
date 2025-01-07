@@ -1,5 +1,5 @@
 # pi-server
-
+remotely managable from you terminal with vm-manager.py
 # a pretty cool api based vm manager for rpi 5 
 
 built for my own use prob with some major adjustments would work in production.
