@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict
 from threading import Lock
-import httpx  # Async HTTP client
+import httpx
 
 app = FastAPI()
 lock = Lock()
@@ -14,11 +14,11 @@ class VMRequest(BaseModel):
     memory: int
     vcpus: int
     disk_size: int
-    os: str  # OS name, e.g., "alpine", "ubuntu", "debian"
+    os: str
 
 class NodeInfo(BaseModel):
     node_name: str
-    node_url: str  # URL of the slave node to reach it for communication
+    node_url: str
 
 class PortForwardRequest(BaseModel):
     vm_name: str
@@ -26,9 +26,9 @@ class PortForwardRequest(BaseModel):
     target_port: int
 
 class ClusterStatus(BaseModel):
-    status: Dict[str, dict]  # Node URL mapped to its status or error message
+    status: Dict[str, dict]
 
-# List to keep track of registered slave nodes
+# keep track of registered slave nodes
 registered_nodes: List[Dict[str, str]] = []
 
 @app.post("/register")
@@ -50,8 +50,6 @@ async def create_vm(vm_request: VMRequest):
     """Distribute VM creation across the cluster."""
     if not registered_nodes:
         raise HTTPException(status_code=500, detail="No active nodes available in the cluster.")
-    
-    # Query all nodes for their status to find the one with the most available resources
     statuses = []
     async with httpx.AsyncClient() as client:
         for node in registered_nodes:
@@ -61,8 +59,6 @@ async def create_vm(vm_request: VMRequest):
                     statuses.append((node['node_url'], response.json()))
             except httpx.RequestError:
                 statuses.append((node['node_url'], {"error": "Node unreachable"}))
-
-    # Filter nodes with valid statuses
     valid_nodes = [status for status in statuses if "error" not in status[1]]
 
     if not valid_nodes:
@@ -72,8 +68,8 @@ async def create_vm(vm_request: VMRequest):
     def get_sort_key(node):
         node_data = node[1]
         resources = node_data.get("resources", {})
-        free_memory = resources.get("free_memory", 0)  # Default to 0 if missing
-        cpu_count = resources.get("cpu_count", 0)      # Default to 0 if missing
+        free_memory = resources.get("free_memory", 0)
+        cpu_count = resources.get("cpu_count", 0)
         return (free_memory, cpu_count)
 
     valid_nodes.sort(key=get_sort_key, reverse=True)
@@ -95,12 +91,9 @@ async def request_port_forwarding(port_request: PortForwardRequest):
     async with httpx.AsyncClient() as client:
         for node in registered_nodes:
             try:
-                # Retrieve VM list from each node
                 response = await client.get(f"{node['node_url']}/vms", timeout=5)
                 if response.status_code == 200:
                     vms = response.json().get("vms", [])
-                    
-                    # Check if the VM exists in the list of VMs
                     if port_request.vm_name in vms:
                         forward_response = await client.post(
                             f"{node['node_url']}/port_forward",
@@ -115,7 +108,6 @@ async def request_port_forwarding(port_request: PortForwardRequest):
                                 detail=f"Failed to forward port: {forward_response.text}"
                             )
             except httpx.RequestError as e:
-                # Handle error for communication with the node
                 continue
 
     raise HTTPException(status_code=404, detail=f"VM {port_request.vm_name} not found in the cluster.")
@@ -129,7 +121,6 @@ async def cluster_status():
         for node in registered_nodes:
             node_url = node['node_url']
             try:
-                # Request status from each node
                 response = await client.get(f"{node_url}/status", timeout=5)
                 if response.status_code == 200:
                     cluster_status[node_url] = response.json()
@@ -142,7 +133,6 @@ async def cluster_status():
 
     return {"status": cluster_status}
 
-# Define a model for the VM name in the request body
 class VMNameRequest(BaseModel):
     vm_name: str
 
@@ -201,7 +191,6 @@ async def list_all_vms():
             node_name = node.get("node_name", "unknown")
             node_url = node.get("node_url", "unknown")
             try:
-                # Fetch VMs from the node
                 response = await client.get(f"{node_url}/vms", timeout=5)
                 response.raise_for_status()
                 vms = response.json().get("vms", [])
