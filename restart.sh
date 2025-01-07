@@ -1,3 +1,4 @@
+# works
 echo "\033[1;32mRestarting master service...\033[0m"
 sudo systemctl restart master.service
 sleep 1
