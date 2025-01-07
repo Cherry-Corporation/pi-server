@@ -43,12 +43,11 @@ def create_vm(name, memory, vcpus, disk_size, os, ports):
         response.raise_for_status()
         data = response.json()
 
-        # Extract fields from the response
         message = data.get("message", "VM created successfully.")
         ip_address = data.get("ip_address", "unknown")
         port_forwards = data.get("port_forwards", [])
 
-        # Display the VM creation details
+        # Display the VM creation stuff
         print_success(message)
         print_info(f"IP Address: {ip_address}")
         if port_forwards:
@@ -149,7 +148,7 @@ def list_vms():
         print_info("List of VMs across the cluster:")
         for node, vms in vms_on_nodes.items():
             click.echo(f"- {node}:")
-            # Remove "Name" from the list if it exists
+            # workaround when i have time i need to fix
             filtered_vms = [vm for vm in vms if vm != "Name"]
             if filtered_vms:
                 for vm in filtered_vms:
@@ -162,7 +161,7 @@ def list_vms():
     except Exception as e:
         print_error(f"Unexpected error: {e}")
 
-# Add commands to the CLI
+# Add commands to my cli vm manager and hopefully it will finally work
 task_list = [
     create_vm,
     shutdown_vm,
