@@ -143,9 +143,10 @@ def get_vm_ip(vm_name: str) -> Optional[str]:
 
 
 def setup_port_forwarding(vm_ip: str, port_mappings: List[Tuple[int, int]]) -> None:
+    """Sets up port forwarding for a given VM IP and port mappings."""
     for host_port, target_port in port_mappings:
         try:
-            # Add a PREROUTING rule
+            # Add a PREROUTING rule to redirect incoming traffic on host_port to the VM
             subprocess.run(
                 [
                     "sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
@@ -155,7 +156,7 @@ def setup_port_forwarding(vm_ip: str, port_mappings: List[Tuple[int, int]]) -> N
                 check=True
             )
 
-            # Add a FORWARD
+            # Add a FORWARD rule to allow the traffic through
             subprocess.run(
                 [
                     "sudo", "iptables", "-A", "FORWARD",
@@ -169,7 +170,6 @@ def setup_port_forwarding(vm_ip: str, port_mappings: List[Tuple[int, int]]) -> N
         
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set up port forwarding for {host_port} -> {vm_ip}:{target_port}: {e}")
-
 import socket
 
 def get_local_ip():
