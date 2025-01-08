@@ -20,7 +20,6 @@ cd pi-server
 
 mkdir disks
 mkdir vms
-mkdir isos
 
 echo -e "${YELLOW}Undefining the default virtual network...${RESET}"
 sudo virsh net-destroy default
@@ -79,6 +78,12 @@ EOF
   sudo systemctl start slave.service
   echo -e "${GREEN}Slave service setup complete.${RESET}"
 
+  # Create VM only if slave is selected
+  echo -e "${YELLOW}Downloading Alpine prebuilt disk image (180Mb)...${RESET}"
+  cd disks
+  wget linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
+
+  echo -e "${GREEN}Prebuilt disk download complete.${RESET}"
 }
 
 # Ask user
