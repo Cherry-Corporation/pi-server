@@ -36,6 +36,8 @@ echo -e "${GREEN}Network setup complete.${RESET}"
 # Function to setup master service
 setup_master() {
   echo -e "${CYAN}Setting up Master service...${RESET}"
+
+  # Setup the master service
   sudo tee /etc/systemd/system/master.service > /dev/null <<EOF
 [Unit]
 Description=Master FastAPI Server
@@ -54,11 +56,29 @@ EOF
   sudo systemctl enable master.service
   sudo systemctl start master.service
   echo -e "${GREEN}Master service setup complete.${RESET}"
+
+  # Print the current master URL for clients to connect
+  IP_ADDRESS=$(hostname -I | awk '{print $1}')
+  echo -e "${CYAN}Master is running on: http://$IP_ADDRESS:8000${RESET}"
+
+  sleep 1
+  sudo systemctl status master.service
 }
 
 # Function to setup slave service
 setup_slave() {
   echo -e "${CYAN}Setting up Slave service...${RESET}"
+
+  # Ask user for MASTER_URL if this is a slave
+  read -p "Enter the MASTER_URL of the master machine (e.g. http://<master-ip>:8000/register): " MASTER_URL
+  echo -e "${CYAN}Master URL set to: $MASTER_URL${RESET}"
+
+  # Update the MASTER_URL in slave.py
+  echo -e "${CYAN}Updating MASTER_URL in slave.py...${RESET}"
+  sudo sed -i "s|MASTER_URL = .*|MASTER_URL = \"$MASTER_URL\"|" /home/pi/pi-server/slave.py
+  echo -e "${GREEN}MASTER_URL in slave.py updated successfully.${RESET}"
+
+  # Setup the slave service
   sudo tee /etc/systemd/system/slave.service > /dev/null <<EOF
 [Unit]
 Description=Slave FastAPI Server
