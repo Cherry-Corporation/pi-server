@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 from threading import Lock
 import httpx
+from typing import List, Tuple
 
 app = FastAPI()
 lock = Lock()
@@ -20,10 +21,10 @@ class NodeInfo(BaseModel):
     node_name: str
     node_url: str
 
+
 class PortForwardRequest(BaseModel):
     vm_name: str
-    host_port: int
-    target_port: int
+    port_mappings: List[Tuple[int, int]]
 
 class ClusterStatus(BaseModel):
     status: Dict[str, dict]
@@ -86,8 +87,10 @@ async def create_vm(vm_request: VMRequest):
         raise HTTPException(status_code=500, detail=f"Error communicating with node {best_node}: {e}")
 
 @app.post("/port_forward")
-async def request_port_forwarding(port_request: PortForwardRequest):
-    """Request port forwarding for a specific VM."""
+async def port_forward(port_request: PortForwardRequest):
+    """
+    Request port forwarding for a specific VM.
+    """
     async with httpx.AsyncClient() as client:
         for node in registered_nodes:
             try:
@@ -97,8 +100,8 @@ async def request_port_forwarding(port_request: PortForwardRequest):
                     if port_request.vm_name in vms:
                         forward_response = await client.post(
                             f"{node['node_url']}/port_forward",
-                            json=port_request.dict(),
-                            timeout=10
+                            json={"vm_name": port_request.vm_name, "port_mappings": port_request.port_mappings},
+                            timeout=3
                         )
                         if forward_response.status_code == 200:
                             return forward_response.json()
