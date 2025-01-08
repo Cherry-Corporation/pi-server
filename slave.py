@@ -234,7 +234,7 @@ async def create_vm(vm_request: VMRequest):
             "--vcpus", str(vm_request.vcpus),
             "--disk", f"path={target_disk_path},size={vm_request.disk_size}",
             "--os-variant", "generic",
-            "--network", "network=default",
+            "--network", "network=nat-network",
             "--graphics", "none",
             "--console", "pty,target_type=serial",
             "--boot", "firmware=efi,firmware.feature0.enabled=no,firmware.feature0.name=secure-boot",
