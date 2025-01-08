@@ -18,18 +18,23 @@ echo -e "${CYAN}Cloning the pi-server repository...${RESET}"
 git clone https://github.com/Cherry-Corporation/pi-server.git
 cd pi-server
 
-mkdir disks
-mkdir vms
-current_user=$(whoami)
-
 # Get the home directory of the current user
+current_user=$(whoami)
 home_dir=$(eval echo ~$current_user)
 
+# Create the log file with sudo, using the user's home directory
+sudo touch "$home_dir/pi-server/node_log.log"
+
+# Create the directories
+mkdir -p "$home_dir/pi-server/disks"
+mkdir -p "$home_dir/pi-server/vms"
+
 # Grant search permissions to the home directory
-sudo chmod a+x "$home_dir" "$home_dir"
+sudo chmod a+x "$home_dir"
 
 # Change ownership of the pi-server directory to the libvirt-qemu user and group
 sudo chown libvirt-qemu:libvirt-qemu "$home_dir/pi-server/"
+
 
 echo -e "${YELLOW}Undefining the default virtual network...${RESET}"
 sudo virsh net-destroy default
