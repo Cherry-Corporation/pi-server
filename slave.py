@@ -170,12 +170,27 @@ def setup_port_forwarding(vm_ip: str, port_mappings: List[Tuple[int, int]]) -> N
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to set up port forwarding for {host_port} -> {vm_ip}:{target_port}: {e}")
 
+import socket
+
+def get_local_ip():
+    """Get the local network IP address."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        s.connect(('10.254.254.254', 1))
+        local_ip = s.getsockname()[0]
+    except Exception:
+        local_ip = '127.0.0.1'  # Fallback
+    finally:
+        s.close()
+    return local_ip
+
 @app.on_event("startup")
 async def register_node():
     """Register this node with the master server on app startup."""
     try:
         resources = get_system_resources()
-        local_ip = socket.gethostbyname(socket.gethostname())
+        local_ip = get_local_ip()
         node_info = {
             "node_name": os.uname().nodename,
             "cpu_count": resources["cpu_count"],
