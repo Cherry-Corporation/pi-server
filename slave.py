@@ -8,7 +8,7 @@ import time
 from typing import List, Optional
 import logging
 import socket
-
+from typing import Tuple
 
 log_file_path = "/home/pi/pi-server/node_log.log"
 
@@ -52,10 +52,11 @@ class VMRequest(BaseModel):
     os: str
     port_forwards: Optional[List[int]] = None
 
+
+
 class PortForwardRequest(BaseModel):
     vm_name: str
-    host_port: int
-    target_port: int
+    port_mappings: List[Tuple[int, int]]
 
 class VMNameRequest(BaseModel):
     vm_name: str
@@ -141,29 +142,33 @@ def get_vm_ip(vm_name: str) -> Optional[str]:
         return None
 
 
-def setup_port_forwarding(vm_ip: str, ports: List[int]) -> None:
-    """Set up port forwarding from host to VM."""
-    for port in ports:
+def setup_port_forwarding(vm_ip: str, port_mappings: List[Tuple[int, int]]) -> None:
+    for host_port, target_port in port_mappings:
         try:
+            # Add a PREROUTING rule
             subprocess.run(
                 [
                     "sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
-                    "-p", "tcp", "--dport", str(port),
-                    "-j", "DNAT", f"--to-destination", f"{vm_ip}:{port}"
+                    "-p", "tcp", "--dport", str(host_port),
+                    "-j", "DNAT", f"--to-destination", f"{vm_ip}:{target_port}"
                 ],
                 check=True
             )
+
+            # Add a FORWARD
             subprocess.run(
                 [
                     "sudo", "iptables", "-A", "FORWARD",
-                    "-d", vm_ip, "-p", "tcp", "--dport", str(port),
+                    "-d", vm_ip, "-p", "tcp", "--dport", str(target_port),
                     "-j", "ACCEPT"
                 ],
                 check=True
             )
-            logger.info(f"Port forwarding set for port {port} -> {vm_ip}:{port}")
+
+            logger.info(f"Port forwarding set: host:{host_port} -> {vm_ip}:{target_port}")
+        
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to set up port forwarding for port {port}: {e}")
+            logger.error(f"Failed to set up port forwarding for {host_port} -> {vm_ip}:{target_port}: {e}")
 
 @app.on_event("startup")
 async def register_node():
@@ -315,20 +320,19 @@ async def port_forward(port_request: PortForwardRequest):
         if not vm_ip:
             raise HTTPException(status_code=500, detail=f"Failed to retrieve IP address for VM {port_request.vm_name}.")
         try:
-            setup_port_forwarding(vm_ip, [port_request.host_port, port_request.target_port])
+            setup_port_forwarding(vm_ip, port_request.port_mappings)
 
             logger.info(
-                f"Port forwarding set up: Host port {port_request.host_port} -> VM {port_request.vm_name} port {port_request.target_port}"
+                f"Port forwarding set up: Host ports {[host for host, _ in port_request.port_mappings]} -> VM {port_request.vm_name} ports {[target for _, target in port_request.port_mappings]}"
             )
         except Exception as e:
             logger.error(f"Failed to set up port forwarding: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to set up port forwarding: {e}")
 
         return {
-            "message": f"Port forwarding set up: Host port {port_request.host_port} -> VM {port_request.vm_name} port {port_request.target_port}",
+            "message": f"Port forwarding set up: Host ports {[host for host, _ in port_request.port_mappings]} -> VM {port_request.vm_name} ports {[target for _, target in port_request.port_mappings]}",
             "vm_name": port_request.vm_name,
-            "host_port": port_request.host_port,
-            "target_port": port_request.target_port,
+            "port_mappings": port_request.port_mappings,
             "vm_ip": vm_ip
         }
 
