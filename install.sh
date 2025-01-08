@@ -20,6 +20,16 @@ cd pi-server
 
 mkdir disks
 mkdir vms
+current_user=$(whoami)
+
+# Get the home directory of the current user
+home_dir=$(eval echo ~$current_user)
+
+# Grant search permissions to the home directory
+sudo chmod a+x "$home_dir" "$home_dir"
+
+# Change ownership of the pi-server directory to the libvirt-qemu user and group
+sudo chown libvirt-qemu:libvirt-qemu "$home_dir/pi-server/"
 
 echo -e "${YELLOW}Undefining the default virtual network...${RESET}"
 sudo virsh net-destroy default
