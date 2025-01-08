@@ -81,8 +81,9 @@ EOF
   # Create VM only if slave is selected
   echo -e "${YELLOW}Downloading Alpine prebuilt disk image (180Mb)...${RESET}"
   cd disks
-  wget linkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
-
+  wget https://github.com/Cherry-Corporation/pi-server/releases/download/v1.0.0/alpine.qcow2
+  cd ..
+  chmod +x restart.sh && ./restart.sh
   echo -e "${GREEN}Prebuilt disk download complete.${RESET}"
 }
 
