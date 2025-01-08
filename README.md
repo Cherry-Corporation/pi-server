@@ -9,6 +9,7 @@ built for my own use prob with some major adjustments would work in production.
 
 `bash -c "$(wget -qO- https://raw.githubusercontent.com/Cherry-Corporation/pi-server/refs/heads/main/install.sh)"`
 
+![{8350C7A8-54ED-4999-B377-DE13128ED7E3}](https://github.com/user-attachments/assets/6e1cc639-562f-47d5-bf88-a8cdcdeb668a)
 
 # setup 
 - clone the repo
