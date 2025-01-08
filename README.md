@@ -4,6 +4,12 @@ remotely managable from you terminal with vm-manager.py
 
 built for my own use prob with some major adjustments would work in production.
 
+
+# Quick Install
+
+`bash -c "$(wget -qO- https://raw.githubusercontent.com/Cherry-Corporation/pi-server/refs/heads/main/install.sh)"`
+
+
 # setup 
 - clone the repo
 - install python and python3-pip
@@ -12,7 +18,8 @@ built for my own use prob with some major adjustments would work in production.
 - then run the slave or the master depending on what machine it is
 - or even better create a systemctl service on boot like i did
 
-### cat /etc/systemd/system/master.service
+# Notes
+cat /etc/systemd/system/master.service
 [Unit]
 Description=Master FastAPI Server
 After=network.target
@@ -26,7 +33,7 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 
-### cat /etc/systemd/system/slave.service
+cat /etc/systemd/system/slave.service
 [Unit]
 Description=Slave FastAPI Server
 After=network.target
@@ -40,7 +47,8 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 
-### then reload with: sudo systemctl daemon-reload
+then reload with: 
+sudo systemctl daemon-reload
 sudo systemctl enable master.service
 sudo systemctl enable slave.service
 sudo systemctl start master.service
