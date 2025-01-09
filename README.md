@@ -1,7 +1,7 @@
 # pi-server
 A remotely manageable server for Raspberry Pi 5, controlled from your terminal using `vm-manager.py`. This tool offers an efficient way to manage multiple virtual machines on Raspberry Pi devices, whether for personal projects or lightweight production deployments.
 
-### For High-Seas Visitors!!!!!
+# For High-Seas Visitors!!!!!
 this project was made with the help of ai(github copilot)
 
 ## Overview
