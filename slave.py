@@ -146,7 +146,7 @@ def setup_port_forwarding(vm_ip: str, port_mappings: List[Tuple[int, int]]) -> N
     """Sets up port forwarding for a given VM IP and port mappings."""
     for host_port, target_port in port_mappings:
         try:
-            # Add a PREROUTING rule to redirect incoming traffic on host_port to the VM
+            # Add a PREROUTING rule
             subprocess.run(
                 [
                     "sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
@@ -156,7 +156,7 @@ def setup_port_forwarding(vm_ip: str, port_mappings: List[Tuple[int, int]]) -> N
                 check=True
             )
 
-            # Add a FORWARD rule to allow the traffic through
+            # Add a FORWARD rule
             subprocess.run(
                 [
                     "sudo", "iptables", "-A", "FORWARD",
@@ -220,7 +220,7 @@ async def status():
 async def create_vm(vm_request: VMRequest):
     """Endpoint to create a new virtual machine."""
     try:
-        # Log the VM creation request for debuggingggggg
+        # Log the VM creation for debuggingggggg
         logger.info(f"Received request to create VM: {vm_request.name} with OS: {vm_request.os}, Memory: {vm_request.memory}MB, VCPUs: {vm_request.vcpus}, Disk size: {vm_request.disk_size}GB")
 
         os_name = vm_request.os.lower()
@@ -233,7 +233,7 @@ async def create_vm(vm_request: VMRequest):
         
         logger.info(f"VM '{vm_request.name}' does not exist. Proceeding with creation.")
 
-        # Prepare disk paths
+        # disk paths
         prebuilt_disk_path = os.path.join(DISK_FOLDER, OS_IMAGES[os_name])
         vm_folder = os.path.join(VM_DISKS_FOLDER, vm_request.name)
         target_disk_path = os.path.join(vm_folder, OS_IMAGES[os_name])
