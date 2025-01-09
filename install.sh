@@ -1,47 +1,40 @@
 #!/bin/bash
 
-# Define color codes
+# color codes
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 RED='\033[1;31m'
 CYAN='\033[1;36m'
 RESET='\033[0m'
 
-# Update and install dependencies
+# Update
 echo -e "${CYAN}Updating system and installing dependencies...${RESET}"
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y git wget qemu-system libvirt-clients libvirt-daemon-system virt-manager python3-pip
 pip install fastapi pydantic requests uvicorn httpx --break-system-packages
 
-# Clone repository and navigate to it
+# clone repo
 echo -e "${CYAN}Cloning the pi-server repository...${RESET}"
 git clone https://github.com/Cherry-Corporation/pi-server.git
 cd pi-server
 
-# Get the home directory of the current user
+
 current_user=$(whoami)
 home_dir=$(eval echo ~$current_user)
 
-# Create the log file with sudo, using the user's home directory
 sudo touch "$home_dir/pi-server/node_log.log"
 
-# Change the ownership and permissions for the log file
 sudo chown pi:pi "$home_dir/pi-server/node_log.log"
 sudo chmod 664 "$home_dir/pi-server/node_log.log"
 
-# Create the directories
 mkdir -p "$home_dir/pi-server/disks"
 mkdir -p "$home_dir/pi-server/vms"
 
-# Grant search permissions to the home directory
 sudo chmod a+x "$home_dir"
 
-# Change ownership and permissions for the pi-server directory and its contents
 sudo chown -R pi:pi "$home_dir/pi-server"
 sudo chmod -R 755 "$home_dir/pi-server"
 
-# Change ownership of the pi-server directory to the libvirt-qemu user and group (if needed)
-# You can remove this line if it's not required
 sudo chown libvirt-qemu:libvirt-qemu "$home_dir/pi-server/"
 
 
@@ -50,7 +43,7 @@ echo -e "${YELLOW}Undefining the default virtual network...${RESET}"
 sudo virsh net-destroy default
 sudo virsh net-undefine default
 
-# Define the new NAT-based network using existing nat-network.xml
+# networking
 echo -e "${YELLOW}Defining a new NAT-based network using nat-network.xml...${RESET}"
 sudo virsh net-define nat-network.xml
 sudo virsh net-autostart nat-network
@@ -58,7 +51,7 @@ sudo virsh net-start nat-network
 
 echo -e "${GREEN}Network setup complete.${RESET}"
 
-# Function to setup master service
+
 setup_master() {
   echo -e "${CYAN}Setting up Master service...${RESET}"
 
@@ -90,15 +83,13 @@ EOF
   sudo systemctl status master.service
 }
 
-# Function to setup slave service
+# setup slave service
 setup_slave() {
   echo -e "${CYAN}Setting up Slave service...${RESET}"
 
-  # Ask user for MASTER_URL if this is a slave
   read -p "Enter the MASTER_URL of the master machine (e.g. http://<master-ip>:8000/register): " MASTER_URL
   echo -e "${CYAN}Master URL set to: $MASTER_URL${RESET}"
 
-  # Update the MASTER_URL in slave.py
   echo -e "${CYAN}Updating MASTER_URL in slave.py...${RESET}"
   sudo sed -i "s|MASTER_URL = .*|MASTER_URL = \"$MASTER_URL\"|" /home/pi/pi-server/slave.py
   echo -e "${GREEN}MASTER_URL in slave.py updated successfully.${RESET}"
@@ -123,7 +114,6 @@ EOF
   sudo systemctl start slave.service
   echo -e "${GREEN}Slave service setup complete.${RESET}"
 
-  # Create VM only if slave is selected
   echo -e "${YELLOW}Downloading Alpine prebuilt disk image (180Mb)...${RESET}"
   cd disks
   wget https://github.com/Cherry-Corporation/pi-server/releases/download/v1.0.0/alpine.qcow2
